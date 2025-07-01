@@ -1,0 +1,138 @@
+-- Definition for DB01
+-- Basic meeting system. 
+-- Used for lecture 02 ( business problem)
+-- used for homework 00
+-- used for lecture 03 ( basic queries)
+
+
+\c postgres
+drop database db01;
+create database db01;
+\c db01
+
+
+
+CREATE TABLE Department (
+        ID	        integer, 
+	name    	varchar(20),
+
+        Primary Key  ( ID)
+);
+
+CREATE TABLE Room (
+	Id 		INTEGER NOT NULL,
+	building 	VARCHAR(10) NOT NULL,
+	roomNum 	VARCHAR(5) NOT NULL,
+	capacity 	INTEGER NOT NULL,
+
+	PRIMARY KEY 	( Id )
+);
+
+
+CREATE TABLE Employee (
+	Id 		INTEGER NOT NULL,
+        employeeNum    varchar(10) NOT NULL unique, 
+	name 		VARCHAR(40) NOT NULL,
+	phone 		VARCHAR(14) ,
+	homePhone 	VARCHAR(14),
+        departmentid    integer  NOT NULL,
+
+	PRIMARY KEY 	(Id),
+        FOREIGN KEY     ( departmentID ) references Department ( ID)
+);
+
+
+
+CREATE TABLE Meeting ( 
+      	Id 		INTEGER NOT NULL,
+	roomId 		INTEGER NOT NULL,
+	startTime 	TIMESTAMP NOT NULL,
+	duration 	INTERVAL MINUTE NOT NULL,
+	purpose 	VARCHAR(30) NOT NULL,
+        creator 	INTEGER NOT NULL,
+
+	PRIMARY KEY 	( Id ),
+	FOREIGN KEY 	( roomId) REFERENCES Room ( Id),
+        FOREIGN KEY     ( creator) references Employee ( Id)
+);
+
+
+CREATE TABLE Attendees (
+	meetingId 	INTEGER NOT NULL,
+	employeeId   	INTEGER NOT NULL,
+
+	PRIMARY KEY 	( meetingId, employeeId),
+	FOREIGN KEY 	( meetingId) REFERENCES Meeting ( Id),
+	FOREIGN KEY 	( employeeId) REFERENCES Employee ( Id)
+);
+
+INSERT INTO Department VALUES 
+      ( 1, 'Software Dev'),
+      ( 2, 'Software Test'),
+      ( 3, 'Marketing'),
+      ( 4, 'Administration'),
+      ( 5, 'Sales');
+
+Insert into Room Values
+	(201, 'A', 101, 10),
+	(202, 'A', 102, 30),
+	(203, 'A', 103, 20),
+	(204, 'A', 104, 5),
+	(205, 'B', 101, 20),
+	(206, 'B', 102, 20),
+	(207, 'B', 201, 20),
+	(208, 'B', 202, 30),
+	(209, 'B', 104, 2);
+
+	
+
+Insert into Employee Values 
+	(1, 'S000000001', 'Sarah', '4592' , '331',1 ),
+	(2, 'J000000001', 'John', '8314', '332',2),
+	(3, 'W000000001', 'Winston', '7248', '333',3),
+	(4, 'M000000001', 'Max', '3261', '334',4),
+	(5, 'E000000001','Dan', '4501', '335',5),
+	(6, 'A000000001', 'Ariel', '134', '336',1),
+	(8, 'S000000002', 'Sarah', '7227', '337',2),
+	(9, 'M000000002', 'Mark', '7228', '338',3),
+	(10, 'D000000001', 'Dave', '7229', '338',4),
+	(11, 'J000000002', 'Jack', '7230', '342',5),
+	(12, 'J000000003', 'James', '7231', '343',1),
+	(13, 'M000000003', 'Martha', '7232', '344',2),
+	(14, 'A000000002', 'Alice', '7233', '341',3),
+	(15, 'A000000003', 'Albert', '7234', '341',4);
+
+Insert into Meeting Values 
+	(101, 201, '2018-03-04 9:30', '45', 'Staff', 14),
+	(102, 201, '2018-03-11 9:30', '45', 'Staff', 14), 
+	(103, 201, '2018-03-18 9:30', '45', 'Staff', 14),
+	(104, 201, '2018-03-25 9:30', '45', 'Staff', 14), 
+	(105, 203, '2018-03-04 9:30', '45', 'Staff',3),
+	(106, 203, '2018-03-18 9:30', '45', 'Staff',3), 
+	(107, 204, '2018-03-17 11:00', '90', 'Sales',3),
+
+	(108, 207, '2018-03-09 9:30', '60', 'DB Issues',6),
+	(109, 207, '2018-03-15 9:30', '60', 'Post Mortem',5),
+	(110, 208, '2018-03-07 11:30', '90', 'HR Presentation',11),
+	(111, 202, '2018-03-07 9:30', '60', 'Team Build',14);
+
+
+Insert into Attendees values ( 101, 10),(101, 11),(101, 12),(101, 13),(101, 14),(101, 15);
+Insert into Attendees values ( 102, 10),(102, 11),(102, 12),(102, 13),(102, 14),(102, 15);
+Insert into Attendees values ( 103, 10),(103, 11),(103, 12),(103, 13),(103, 14),(103, 15);
+Insert into Attendees values ( 104, 10),(104, 11),(104, 12),(104, 13),(104, 14),(104, 15);
+
+Insert into Attendees values ( 105, 1), (105,2 ),(105,3 ),(105,4 ),(105,5 ),(105,6 );
+Insert into Attendees values ( 106, 1), (106,2 ),(106,3 ),(106,4 ),(106,5 ),(106,6 );
+
+Insert into Attendees values ( 107,8 ), (107,9 ), (107,10 );
+Insert into Attendees values ( 108,13 ), (108,14), (108,15 ),(108, 9);
+
+
+Insert into Attendees values ( 109, 10),(109, 11),(109, 12),(109, 13),(109, 14),(109, 15);
+Insert into Attendees values ( 110, 1 ), (110, 2), (110,3 ), (110,4 ), (110,5 ), (110,6 ),  (110,8 ), (110,9 ), (110,10 ), (110,11 ), (110,12 ), (110,13 ), (110,14 );
+Insert into Attendees values ( 111, 1), (111,2 ),(111,3 ),(111,4 ),(111,5 ),(111,6 );
+
+
+\c postgres
+\c db01

@@ -1,0 +1,120 @@
+\qecho Dylan Nelson
+\qecho
+\qecho #1
+\qecho 
+SELECT Room.building, COUNT (*) AS num_meetings 
+FROM Room
+	JOIN Meeting ON (Room.id = Meeting.roomid)
+GROUP BY room.building
+Order BY room.building;
+\qecho
+\qecho #2
+\qecho
+SELECT Room.building, Room.roomnumber, COUNT (*) AS nummeetings
+FROM Room
+	JOIN Meeting ON (Room.id = Meeting.roomid)
+GROUP BY room.id
+ORDER BY room.building, room.roomnumber;
+\qecho
+\qecho #3
+\qecho
+SELECT Room.building, Room.roomnumber, COUNT (*) AS nummeetings
+FROM Room
+	JOIN Meeting ON (Room.id = Meeting.roomid)
+GROUP BY room.id
+HAVING count (*) >= 2
+ORDER BY room.building, room.roomnumber;
+\qecho
+\qecho #4
+\qecho
+SELECT Meeting.purpose, Meeting.starttime, 
+	COUNT (*) AS num_attendees
+FROM Meeting
+	JOIN Attendees ON (Meeting.id = Attendees.meetingid)
+GROUP BY meeting.id
+ORDER BY meeting.starttime, meeting.purpose;
+\qecho
+\qecho #5
+\qecho
+SELECT Meeting.purpose, Meeting.starttime, 
+	COUNT (*) AS num_attendees, 
+	Room.capacity - COUNT(*) AS seats_available
+FROM Room
+	JOIN Meeting ON (Room.id = Meeting.roomid)
+	JOIN Attendees ON (Meeting.id = Attendees.meetingid)
+GROUP BY room.id, meeting.id
+ORDER BY seats_available, starttime DESC;
+\qecho
+\qecho #6
+\qecho
+SELECT DISTINCT Employee.employeenum, Employee.name AS moderator, 
+	Meeting.purpose
+FROM Meeting
+	JOIN Employee ON (Meeting.moderatorid = Employee.id)
+ORDER BY employee.employeenum, meeting.purpose;
+\qecho
+\qecho #7
+\qecho
+SELECT Employee.employeenum AS "EmployeeNum", 
+	Employee.name AS "Employee Name", 
+	COUNT (*) AS "Num Created"
+FROM Employee
+	JOIN Meeting ON (Employee.id = Meeting.creatorid)
+Group BY employee.id
+ORDER BY "EmployeeNum";
+\qecho
+\qecho #8
+\qecho
+SELECT Employee.name AS "Moderator Name", COUNT (*) AS "NumMeetings"
+FROM Employee
+	JOIN Meeting ON (Employee.id = Meeting.moderatorid)
+GROUP BY employee.id, meeting.moderatorid
+ORDER BY meeting.moderatorid;
+\qecho
+\qecho #9
+\qecho
+SELECT Employee.employeenum, Employee.name, COUNT (*) AS nummeetings
+FROM Employee
+	JOIN Attendees ON (Employee.id = Attendees.employeeid)
+GROUP BY employee.id
+ORDER BY employee.employeenum;
+\qecho
+\qecho #10
+\qecho
+SELECT Employee.employeenum, Employee.name, SUM(Meeting.duration) AS totalduration
+FROM Employee
+	JOIN Attendees ON (Employee.id = Attendees.employeeid)
+	JOIN Meeting ON (Meeting.id = Attendees.meetingid)
+GROUP BY employee.id
+ORDER BY totalduration DESC, employee.employeenum;
+\qecho
+\qecho #11
+\qecho
+SELECT PhoneType.name AS category, COUNT (*)
+FROM Phone
+	JOIN PhoneType ON (Phone.phonetypeid = PhoneType.id)
+GROUP BY phonetype.name
+ORDER BY category;
+\qecho
+\qecho #12
+\qecho
+SELECT Employee.name AS attendee, Phone.number AS cell_number FROM Employee
+	JOIN Phone ON (Employee.id = Phone.employeeid)
+	JOIN Attendees ON (Phone.employeeid = Attendees.employeeid)
+WHERE attendees.meetingid = 113 AND phone.phonetypeid = 'C';
+\qecho
+\qecho #13
+\qecho
+SELECT Employee.name AS attendee, Employee.email FROM Employee
+	JOIN Attendees ON (Employee.id = Attendees.employeeid)
+WHERE attendees.meetingid = 113
+ORDER BY email;
+\qecho
+\qecho #14
+\qecho
+SELECT Department.name AS "departmentName", COUNT (*) AS "numEmployees", 
+	SUM(Employee.salary) AS "totalSalary"
+FROM Employee
+	JOIN Department ON (Employee.departmentid = Department.id)
+GROUP BY employee.departmentid, department.id
+ORDER BY "departmentName";

@@ -1,0 +1,172 @@
+\qecho Dylan Nelson
+\qecho
+\qecho #1
+\qecho
+SELECT 	Meeting.ID AS meeting_id, 
+	COUNT(Attendees.employeeID) AS butsinseat, 
+	COALESCE(Room.capacity, COUNT(Attendees.employeeID)) AS "roomsize",
+	Meeting.creatorID AS creatorid
+FROM Meeting
+	JOIN Attendees ON (Meeting.ID = Attendees.meetingID)
+	JOIN Room ON (Meeting.roomID = Room.ID)
+GROUP BY meeting_id, room.ID
+ORDER BY meeting.ID;
+\qecho
+\qecho #2
+\qecho
+SELECT Employee.name, SUM(Table1.attendees) AS attendees, 
+	SUM(Table1.capacity) AS capacity,
+	SUM(Table1.capacity) - SUM(Table1.attendees) AS availseats
+FROM (
+	SELECT Meeting.creatorID, 
+	COUNT(Attendees.employeeID) AS attendees,
+	COALESCE(Room.capacity, COUNT(Attendees.employeeID)) AS capacity
+	FROM Meeting
+	JOIN Room ON (Meeting.roomID = Room.ID)
+	JOIN Attendees ON (Meeting.ID = Attendees.meetingID)
+	GROUP BY meeting.ID, Room.ID
+	) AS Table1
+	JOIN Employee ON (Table1.creatorID = Employee.ID)
+GROUP BY table1.creatorID, employee.ID
+ORDER BY table1.creatorID;
+\qecho
+\qecho #3
+\qecho
+SELECT Employee.name, Table1.nummeetings,
+	table1.nummeetings * 0.75 AS "compute.75"
+FROM (
+	SELECT Attendees.employeeID, COUNT(*) AS nummeetings
+	FROM Attendees
+	GROUP BY Attendees.employeeID
+	) AS Table1
+	JOIN Employee ON (Table1.employeeID = Employee.ID)
+GROUP BY employee.ID, table1.nummeetings
+ORDER BY table1.nummeetings DESC
+LIMIT 1;
+\qecho
+\qecho #4
+\qecho
+SELECT Employee.name, Table1.nummeetings
+FROM (
+	SELECT Attendees.employeeID, COUNT(*) AS nummeetings
+	FROM Attendees
+	GROUP BY Attendees.employeeID
+	) AS Table1
+	JOIN Employee ON (Table1.employeeID = Employee.ID)
+WHERE table1.nummeetings >= 
+	( 
+	SELECT MAX(Table2.nummeetings) * 0.75
+    	FROM (
+        	SELECT Attendees.employeeID, COUNT(*) AS nummeetings
+        	FROM Attendees
+        	GROUP BY Attendees.employeeID
+    		) AS Table2
+	)
+GROUP BY employee.ID, table1.nummeetings
+ORDER BY table1.nummeetings DESC, employee.employeenum;
+\qecho
+\qecho #5
+\qecho
+SELECT 
+	ROUND (
+	(SELECT COUNT(Meeting.roomID)
+	FROM Meeting
+	WHERE Meeting.starttime <= '2018-03-04 10:00:00'
+	AND Meeting.starttime + 
+		duration >= '2018-03-04 10:00:00'
+	) * 100 / (SELECT COUNT(Room.ID) FROM Room), 0
+	) AS "Util in %";
+\qecho
+\qecho #6
+\qecho
+SELECT Phonetype.name AS category, 
+	Table1.numemployees AS num_employees
+FROM Phonetype 
+	JOIN (
+		SELECT phone.phonetypeID, 
+		COUNT(DISTINCT phone.employeeID) AS numemployees 
+		FROM Phone
+		GROUP BY phone.phonetypeID
+		) AS Table1 ON (Phonetype.ID = Table1.phonetypeID)
+ORDER BY category;
+\qecho
+\qecho #7
+\qecho
+SELECT Phonetype.name AS category, 
+	Table1.numlistings AS numlistings
+FROM Phonetype 
+	JOIN (
+		SELECT phone.phonetypeID, 
+		COUNT(phone.employeeID) AS numlistings
+		FROM Phone
+		GROUP BY phone.phonetypeID
+		) AS Table1 ON (Phonetype.ID = Table1.phonetypeID)
+ORDER BY category;
+\qecho
+\qecho #8
+\qecho
+SELECT Meeting.ID AS meetingid, Meeting.purpose, 
+	Table1.numcellphones AS num_cell_phones
+FROM Meeting
+	JOIN (
+		SELECT Attendees.meetingID, COUNT(phone.employeeID) AS numcellphones
+		FROM Phone
+			JOIN Attendees ON (Phone.employeeID = Attendees.employeeID)
+			JOIN Meeting ON (Attendees.meetingID = Meeting.ID)
+			JOIN Room ON (Meeting.roomID = Room.ID)
+		WHERE phone.phonetypeID = 'C' AND Room.building = 'B'
+		GROUP BY attendees.meetingID
+		) AS Table1 ON (Meeting.ID = Table1.meetingID)
+ORDER BY meetingid;
+\qecho
+\qecho #9
+\qecho
+SELECT ROUND(AVG(Table1.numcellphones), 2) AS avg_phones
+FROM Meeting
+	JOIN (
+		SELECT Attendees.meetingID, COUNT(phone.employeeID) AS numcellphones
+		FROM Phone
+			JOIN Attendees ON (Phone.employeeID = Attendees.employeeID)
+			JOIN Meeting ON (Attendees.meetingID = Meeting.ID)
+			JOIN Room ON (Meeting.roomID = Room.ID)
+		WHERE phone.phonetypeID = 'C' AND Room.building = 'B'
+		GROUP BY attendees.meetingID
+		) AS Table1 ON (Meeting.ID = Table1.meetingID);
+\qecho
+\qecho #10
+\qecho
+SELECT Department.name AS department_name, AVG(Table1.duration) AS avg_time
+FROM (
+	SELECT Meeting.duration AS duration, Employee.departmentID, 
+		Meeting.purpose
+	FROM (
+		SELECT Attendees.meetingID FROM Attendees
+		) AS Table2
+			JOIN Meeting ON (Table2.meetingID = Meeting.ID)
+			JOIN Attendees ON (Meeting.ID = Attendees.meetingID)
+			JOIN Employee ON (Attendees.employeeID = Employee.ID) 
+	GROUP BY meeting.ID, employee.ID
+	) AS Table1
+	JOIN Department ON (Table1.departmentID = Department.ID)
+GROUP BY department.id
+ORDER BY department_name;
+\qecho
+\qecho #11
+\qecho
+SELECT Department.name AS department_name, 
+	DATE_TRUNC('minute', AVG(Table1.duration)) AS avg_time
+FROM (
+	SELECT Meeting.duration AS duration, Employee.departmentID, 
+		Meeting.purpose
+	FROM (
+		SELECT Attendees.meetingID FROM Attendees
+			JOIN Meeting ON (Attendees.meetingID = Meeting.ID)
+		) AS Table2
+			JOIN Meeting ON (Table2.meetingID = Meeting.ID)
+			JOIN Attendees ON (Meeting.ID = Attendees.meetingID)
+			JOIN Employee ON (Attendees.employeeID = Employee.ID) 
+	GROUP BY meeting.ID, employee.ID
+	) AS Table1
+	JOIN Department ON (Table1.departmentID = Department.ID)
+GROUP BY department.id
+ORDER BY department_name;

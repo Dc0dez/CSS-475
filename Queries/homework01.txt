@@ -1,0 +1,78 @@
+\qecho Dylan Nelson
+\qecho
+\qecho #1
+\qecho 
+SELECT Room.building, Room.roomnum AS room_number 
+FROM Room
+ORDER BY room_number, room.building;
+\qecho
+\qecho #2
+\qecho
+SELECT Room.building, Room.roomnum AS room_number, Room.capacity
+FROM Room
+WHERE room.capacity >=10 AND room.capacity <=15
+ORDER BY room.capacity;
+\qecho
+\qecho #3
+\qecho
+SELECT Employee.name AS attendees FROM Employee
+	JOIN Attendees ON (Employee.id = Attendees.employeeid) 
+WHERE attendees.meetingid = 108
+ORDER BY employee.name;
+\qecho
+\qecho #4
+\qecho
+SELECT Meeting.starttime, Meeting.duration, Meeting.purpose FROM Meeting
+WHERE meeting.creator = 3
+ORDER BY meeting.starttime;
+\qecho
+\qecho #5
+\qecho
+SELECT Meeting.starttime, Meeting.duration, Meeting.purpose, 
+	Room.building, Room.roomnum
+FROM Room
+	JOIN Meeting ON (Room.id = Meeting.roomid)
+	JOIN Attendees ON (Meeting.id = Attendees.meetingid)	
+WHERE attendees.employeeid = 14
+ORDER BY meeting.purpose DESC, meeting.starttime;
+\qecho
+\qecho #6
+\qecho
+SELECT Employee.name, Employee.phone FROM Employee
+ORDER BY employee.name;
+\qecho
+\qecho #7
+\qecho
+SELECT Employee.name AS creator_name, Meeting.purpose, Room.building, 
+	Room.roomnum AS room_number, purpose as meetingreason,
+	Meeting.starttime, Meeting.duration 
+FROM Room
+	JOIN Meeting ON (Room.id = Meeting.roomid)
+	JOIN Employee ON (Meeting.creator = Employee.id)
+WHERE meeting.creator = 14
+ORDER BY meeting.starttime DESC;
+\qecho
+\qecho #8
+\qecho
+SELECT Department.name AS dept_name, Employee.name AS emp_name, 
+	Meeting.purpose, Room.building, Room.roomnum
+FROM Room
+	JOIN Meeting ON (Room.id = Meeting.roomid)
+	JOIN Attendees ON (Meeting.id = Attendees.meetingid)
+	JOIN Employee ON (Attendees.employeeid = Employee.id)
+	JOIN Department ON (Employee.departmentid = Department.id)
+WHERE department.name LIKE 'Software%' AND room.building = 'B'
+ORDER BY dept_name, emp_name, meeting.purpose;
+\qecho
+\qecho #9
+\qecho
+SELECT Employee.name AS creator_name, Employee.homephone FROM Employee
+	JOIN Meeting ON (Employee.id = Meeting.creator)
+GROUP BY employee.id	
+ORDER BY creator_name;
+\qecho
+\qecho #10
+\qecho
+SELECT Room.building, Room.roomnum, Meeting.starttime FROM Room
+	JOIN Meeting ON (Room.id = Meeting.roomid)
+ORDER BY meeting.starttime, room.id;

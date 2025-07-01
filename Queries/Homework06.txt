@@ -1,0 +1,191 @@
+\qecho Dylan Nelson
+\qecho
+ALTER SEQUENCE Genre_id_seq  RESTART WITH 12;
+ALTER SEQUENCE customer_id_seq  RESTART WITH 102;
+ALTER SEQUENCE Libcard_id_seq  RESTART WITH 113;
+ALTER SEQUENCE bookCat_id_seq  RESTART WITH 1350;
+
+BEGIN;
+
+\qecho #1
+INSERT INTO CoRecord (BookID, LibCardID, 
+			CoDate, CIDueDate)
+VALUES (
+	(SELECT ID FROM Book WHERE BarCode = '0737494331'),
+	(SELECT ID FROM LibCard WHERE BarCode = '0028613547'),
+	CURRENT_DATE, CURRENT_DATE + 14
+	);
+
+UPDATE Book
+SET LibLocationID = NULL
+WHERE barcode = '0737494331';
+\qecho
+\qecho Check #1
+SELECT count (*) as "numCheckedOut"
+FROM Corecord
+WHERE corecord.libcardid = (SELECT id FROM libcard WHERE barcode = '0028613547');
+
+SELECT count (*) as "book count"
+FROM book
+WHERE book.barcode = '0737494331' AND book.liblocationid IS  NULL;
+
+\qecho
+\qecho #2
+UPDATE CoRecord 
+SET CIDate = CURRENT_DATE
+WHERE BookID = (SELECT ID FROM Book WHERE BarCode = '0737494331')
+	AND LibCardID = (SELECT ID FROM LibCard WHERE BarCode = '0028613547');
+
+UPDATE Book
+SET LibLocationID = 5
+WHERE barcode = '0737494331';	
+\qecho
+\qecho Check #2
+SELECT count (*) as numincart
+FROM book
+WHERE book.liblocationid = 5;			
+SELECT count (*) as numCheckedOut
+FROM corecord
+WHERE  libcardid = (SELECT id from libcard WHERE barcode = '0028613547')
+      AND cidate is not null;
+
+\qecho
+\qecho #3
+INSERT INTO Genre (name)
+VALUES ('550 Fans')
+RETURNING ID;
+
+INSERT INTO BookCatToGenre (BookCatID, genreid)
+SELECT ID, 12
+FROM BookCat 
+WHERE BookCat.description ILIKE '%green%';
+\qecho
+\qecho Check #3
+SELECT * from BookCatToGenre
+WHERE BookCatToGenre.Genreid = 12
+order by BookCatid;
+
+\qecho
+\qecho #4
+DELETE FROM Book 
+WHERE BookCatID = 576;
+DELETE FROM BookToAuthor 
+WHERE BookCatID = 576;
+DELETE FROM BookCatToGenre 
+WHERE BookCatID = 576;
+DELETE FROM BookCat 
+WHERE ID = 576;
+\qecho
+\qecho Check #4
+SELECT count (*) as numcat
+FROM bookCat
+WHERE bookCat.id = 576;
+
+SELECT count (*) as numBook
+FROM Book
+WHERE bookcatid = 576;
+
+\qecho
+\qecho #5
+INSERT INTO Customer (FirstName, LastName, email, address1,
+			city, StateID)
+VALUES ('George', 'Spelvin', 'pseudonum@gmail.com',
+	'1234 Plain Street', 'Rochester', 'NY')
+RETURNING ID;
+
+INSERT INTO LibCard (CustomerID, BarCode, issueDate, isActive)
+VALUES (102,'B123456789', '1/15/2323', true);
+\qecho
+\qecho Check #5
+SELECT *
+FROM Customer
+WHERE firstName = 'George' and lastName = 'Spelvin';
+
+SELECT * 
+FROM Libcard
+WHERE libcard.customerid = 102;
+
+\qecho
+\qecho #6
+SELECT * FROM Customer
+WHERE customer.firstname = 'Georgina' AND
+	customer.lastname = 'Spelvin';
+
+UPDATE LibCard
+SET isActive = false
+WHERE CustomerID = 50 AND isActive = true;
+
+INSERT INTO LibCard (CustomerID, BarCode, issueDate, isActive)
+VALUES (50, 'X123456789', '1/5/2023', true);
+\qecho
+\qecho Check #6
+SELECT count (*) as numlibcards
+ FROM Libcard;
+
+SELECT count (*) as numactivecards
+FROM Libcard
+WHERE isactive = true;
+
+SELECT * 
+FROM Libcard
+WHERE customerid = 50 AND isactive;
+
+\qecho
+\qecho #7
+INSERT INTO BookCat (title, Description, ISBN, DDNum)
+VALUES ('A Stich in Time', 'One Second', '183456789', '482.123')
+RETURNING ID;
+
+INSERT INTO BookCatToGenre (BookCatID, genreid)
+VALUES (1350, (SELECT ID FROM Genre WHERE genre.name ILIKE 'Thriller')),
+	(1350, (SELECT ID FROM Genre WHERE genre.name ILIKE 'Romance'));
+\qecho
+\qecho Check #7
+SELECT count (*) as "num Thriller"
+FROM bookcatToGenre
+    JOIN genre ON ( genre.id = bookCatToGenre.genreid)
+WHERE genre.name ilike 'Thriller';
+
+SELECT count (*) as "num Romance"
+FROM bookcatToGenre
+    JOIN genre ON ( genre.id = bookCatToGenre.genreid)
+WHERE genre.name ilike 'Romance';
+
+\qecho
+\qecho #8
+INSERT INTO Book (BarCode, BookCatID, LibLocationID)
+VALUES ('C123456789', (SELECT ID FROM BookCat WHERE title ILIKE 'A Stich in Time'),
+	(SELECT ID FROM LibLocation WHERE name ILIKE 'Cart')),
+	('D123456789', (SELECT ID FROM BookCat WHERE title ILIKE 'A Stich in Time'),
+	(SELECT ID FROM LibLocation WHERE name ILIKE 'Cart')),
+	('E123456789', (SELECT ID FROM BookCat WHERE title ILIKE 'A Stich in Time'),
+	(SELECT ID FROM LibLocation WHERE name ILIKE 'Cart'));
+\qecho
+\qecho Check #8
+SELECT count (*) as numNewBooks 
+FROM book
+    JOIN bookcat ON ( book.bookcatid = bookcat.id)
+WHERE bookcat.isbn = '183456789';
+
+\qecho
+\qecho #9
+UPDATE Book
+SET LibLocationID = (SELECT ID FROM LibLocation WHERE name ILIKE 'Repair')
+WHERE LibLocationID = (SELECT ID FROM LibLocation WHERE name ILIKE '%checkin%cart%');
+\qecho
+\qecho Check #9
+SELECT count (*) as NumInRepair
+FROM book
+WHERE liblocationid = 3;
+
+\qecho
+\qecho #10
+DELETE FROM Book
+WHERE BarCode IN ('0214219368', '0366461513', '0661141665')
+AND LibLocationID = (SELECT ID FROM LibLocation WHERE name ILIKE 'Repair');
+\qecho
+\qecho Check #10
+SELECT count (*) as NumInRepair
+FROM book
+WHERE liblocationid = 3;
+ROLLBACK;

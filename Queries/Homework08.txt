@@ -1,0 +1,111 @@
+\qecho Dylan Nelson
+\qecho
+SELECT current_database();
+\qecho
+CREATE DATABASE "Hw08";
+\qecho
+\c postgres
+\c "Hw08"
+SELECT current_database();
+CREATE TABLE Employee (
+	ID SERIAL not null,
+	employee_number VARCHAR(10) not null unique,
+	first_name VARCHAR(30) not null,
+	middle_name VARCHAR (30) ,
+	last_name VARCHAR (30) not null, 
+	email VARCHAR (100) not null unique,
+	supervisorID INTEGER ,
+	
+	Primary Key (ID),
+	Foreign Key (supervisorID) references Employee (ID)
+	Deferrable Initially Deferred
+);
+CREATE TABLE State (
+	ID VARCHAR (2) not null,
+	name VARCHAR (20) not null,
+
+	Primary Key (ID)
+);
+CREATE TABLE Building (
+	ID SERIAL not null,
+	building_name VARCHAR (20) not null, 
+	address1 VARCHAR (30) not null,
+	address2 VARCHAR (30) ,
+	city VARCHAR (30) not null,
+	zip VARCHAR (5) not null,
+	stateID VARCHAR (2) not null,
+
+
+	Primary Key (ID),
+	Foreign Key (stateID) references State (ID)
+	Deferrable Initially Deferred
+);
+CREATE TABLE Room (
+	ID SERIAL not null,
+	room_number VARCHAR (10) not null,
+	buildingID INTEGER not null,
+	capacity INTEGER not null,
+
+	Primary Key (ID),
+	Foreign Key (buildingID) references Building (ID)
+	Deferrable Initially Deferred
+);
+CREATE TABLE Meeting (
+	ID SERIAL not null,
+	roomID INTEGER not null,
+	start_time TIMESTAMP not null, 
+	duration INTERVAL not null,
+	purpose VARCHAR (30) not null,
+	agenda VARCHAR (120) ,
+	creator INTEGER not null,
+
+	Primary Key (ID),
+	Foreign Key (roomID) references Room (ID)
+	Deferrable Initially Deferred,
+	Foreign Key (creator) references Employee (ID)
+	Deferrable Initially Deferred
+);
+CREATE TABLE Attendees (
+	meetingID INTEGER not null,
+	employeeID INTEGER not null,
+
+	Primary Key (meetingID, employeeID),
+	Foreign Key (meetingID) references Meeting (ID)
+	Deferrable Initially Deferred,
+	Foreign Key (employeeID) references Employee (ID)
+	Deferrable Initially Deferred
+);
+CREATE TABLE Phone_Type (
+	ID CHAR (1) not null,
+	description VARCHAR (15) not null unique,
+	
+	Primary Key (ID)
+);
+CREATE TABLE Phone_Number (
+	phone_typeID CHAR (1) not null,
+	employeeID INTEGER not null,
+	area_code VARCHAR (3) not null,
+	number VARCHAR (7) not null,
+
+	Primary Key (phone_typeID, employeeID),
+	Foreign Key (phone_typeID) references Phone_Type (ID)
+	Deferrable Initially Deferred,
+	Foreign Key (employeeID) references Employee (ID)
+	Deferrable Initially Deferred
+); 
+\qecho #1 \d
+\qecho
+\qecho #2 \d employee
+\qecho
+\qecho #3 \d meeting
+\qecho
+\qecho #4 \d room
+\qecho
+\qecho #5 \d building
+\qecho
+\qecho #6 \d attendees
+\qecho
+\qecho #7
+\c postgres
+SELECT current_database();
+DROP DATABASE "Hw08";
