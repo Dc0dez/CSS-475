@@ -1,7 +1,17 @@
+/*
+db02
+*/
 \qecho Dylan Nelson
+
 \qecho
 \qecho #1
 \qecho
+/*
+For each meeting.  Find the total number of attendees ( buts in seats), the capacity of the room ( if the room does not have a capacity, set the capacity to total number of attendees, and the creatorid  for the meeting.  This will be useful as a subquery in later problems. 
+Column Names:  dept_id, butsinseat, roomsize, creatorid
+Order by meeting.id
+Note – this query will be very useful in problem #10
+*/
 SELECT 	Meeting.ID AS meeting_id, 
 	COUNT(Attendees.employeeID) AS butsinseat, 
 	COALESCE(Room.capacity, COUNT(Attendees.employeeID)) AS "roomsize",
@@ -11,9 +21,16 @@ FROM Meeting
 	JOIN Room ON (Meeting.roomID = Room.ID)
 GROUP BY meeting_id, room.ID
 ORDER BY meeting.ID;
+
 \qecho
 \qecho #2
 \qecho
+/*
+We want to find ( for every creator of a meeting) The total number of attendees for their meetings, The total capacity of the rooms for all of the meetings that they have booked, and the number of available, empty seats in those rooms.  
+In no capacit5y is noted  assume capacity of 0
+Column Names: name, attendees, capacity, availseats
+Order By creatorid
+*/
 SELECT Employee.name, SUM(Table1.attendees) AS attendees, 
 	SUM(Table1.capacity) AS capacity,
 	SUM(Table1.capacity) - SUM(Table1.attendees) AS availseats
@@ -29,9 +46,14 @@ FROM (
 	JOIN Employee ON (Table1.creatorID = Employee.ID)
 GROUP BY table1.creatorID, employee.ID
 ORDER BY table1.creatorID;
+
 \qecho
 \qecho #3
 \qecho
+/*
+Find the name of the employee who is attending the most meetings, and the number of meetings they are signed up for.   Compute a number ( "compute .75" ) which is 75% of the total number of meetings for that person.
+Column Names:  name , numMeetings, compute.75
+*/
 SELECT Employee.name, Table1.nummeetings,
 	table1.nummeetings * 0.75 AS "compute.75"
 FROM (
@@ -43,9 +65,15 @@ FROM (
 GROUP BY employee.ID, table1.nummeetings
 ORDER BY table1.nummeetings DESC
 LIMIT 1;
+
 \qecho
 \qecho #4
 \qecho
+/*
+Find all employees who are attending almost as many meetings as the most prolific meeting attender.  ( Found in #3 above)  'almost as many' is defined as attending 75% of the number of meetings the most prolific meetening attender attends.
+Column Names:  name, numMeetings
+Order by numMeetings, employeenum; Put highest number of meetings at the top (Dave) 
+*/
 SELECT Employee.name, Table1.nummeetings
 FROM (
 	SELECT Attendees.employeeID, COUNT(*) AS nummeetings
@@ -64,9 +92,14 @@ WHERE table1.nummeetings >=
 	)
 GROUP BY employee.ID, table1.nummeetings
 ORDER BY table1.nummeetings DESC, employee.employeenum;
+
 \qecho
 \qecho #5
 \qecho
+/*
+Find the average room utilization for all meetings occurring on 2018-03-04 at 10:00 AM . Express the utilization as a percentage value which is 'total number of rooms with meeting' / 'total number of rooms'
+Column Names:  Util in %  
+*/
 SELECT 
 	ROUND (
 	(SELECT COUNT(Meeting.roomID)
@@ -76,9 +109,15 @@ SELECT
 		duration >= '2018-03-04 10:00:00'
 	) * 100 / (SELECT COUNT(Room.ID) FROM Room), 0
 	) AS "Util in %";
+
 \qecho
 \qecho #6
 \qecho
+/*
+Find the number of employees we have for each phone type. ( Cell, Home etc)
+Column Names: category,  num_employees
+Order By category
+*/
 SELECT Phonetype.name AS category, 
 	Table1.numemployees AS num_employees
 FROM Phonetype 
@@ -89,9 +128,15 @@ FROM Phonetype
 		GROUP BY phone.phonetypeID
 		) AS Table1 ON (Phonetype.ID = Table1.phonetypeID)
 ORDER BY category;
+
 \qecho
 \qecho #7
 \qecho
+/*
+Find the number of phone listings we have for each phone type ( Cell, Home, etc)
+Column Names:  category,  num_listings
+Order By category
+*/
 SELECT Phonetype.name AS category, 
 	Table1.numlistings AS numlistings
 FROM Phonetype 
@@ -102,9 +147,15 @@ FROM Phonetype
 		GROUP BY phone.phonetypeID
 		) AS Table1 ON (Phonetype.ID = Table1.phonetypeID)
 ORDER BY category;
+
 \qecho
 \qecho #8
 \qecho
+/*
+Find the number of cell phones in each meeting that takes place in building B
+Column Names:  meetingid, purpose, num_cell_phones
+Order By meetingid
+*/
 SELECT Meeting.ID AS meetingid, Meeting.purpose, 
 	Table1.numcellphones AS num_cell_phones
 FROM Meeting
@@ -118,9 +169,14 @@ FROM Meeting
 		GROUP BY attendees.meetingID
 		) AS Table1 ON (Meeting.ID = Table1.meetingID)
 ORDER BY meetingid;
+
 \qecho
 \qecho #9
 \qecho
+/*
+Find the average number of cell phones for all meetings in building B. Display answer to two decimal places ( assume employees always have cell phones with them) 
+Column Names:  avg_phones
+*/
 SELECT ROUND(AVG(Table1.numcellphones), 2) AS avg_phones
 FROM Meeting
 	JOIN (
@@ -132,9 +188,15 @@ FROM Meeting
 		WHERE phone.phonetypeID = 'C' AND Room.building = 'B'
 		GROUP BY attendees.meetingID
 		) AS Table1 ON (Meeting.ID = Table1.meetingID);
+
 \qecho
 \qecho #10
 \qecho
+/*
+Find the average time spent by employees in meeting for each department
+Column Names: department_name, avg_time
+Order By purpose, department_name
+*/
 SELECT Department.name AS department_name, AVG(Table1.duration) AS avg_time
 FROM (
 	SELECT Meeting.duration AS duration, Employee.departmentID, 
@@ -150,9 +212,13 @@ FROM (
 	JOIN Department ON (Table1.departmentID = Department.ID)
 GROUP BY department.id
 ORDER BY department_name;
+
 \qecho
 \qecho #11
 \qecho
+/*
+#10 but don’t display second values 
+*/
 SELECT Department.name AS department_name, 
 	DATE_TRUNC('minute', AVG(Table1.duration)) AS avg_time
 FROM (

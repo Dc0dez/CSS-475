@@ -1,7 +1,16 @@
+/*
+db02
+*/
 \qecho Dylan Nelson
+
 \qecho
 \qecho #1
 \qecho
+/*
+We want to see the start and end times for each meeting in building A  
+Columns: building,  roomNumber  startTime, endTime
+Order By startTime,  roomNumber
+*/
 SELECT Room.building, Room.roomnumber AS "roomNumber", 
 	Meeting.starttime AS "startTime", 
 	starttime + Meeting.duration AS "endTime"
@@ -9,9 +18,15 @@ FROM Room
 	JOIN Meeting ON (Room.ID = Meeting.roomID)
 WHERE room.building = 'A'
 ORDER BY "startTime", "roomNumber";
+
 \qecho
 \qecho #2
 \qecho
+/*
+We want to see information about every meeting in the system
+Columns:  building, roomnumber  purpose, startdate, starttime, endtime
+Order by starttime, building, roomNumber
+*/
 SELECT Room.building, Room.roomnumber, Meeting.purpose, 
 	Meeting.starttime::date AS startdate,
 	starttime::time AS starttime,
@@ -19,65 +34,116 @@ SELECT Room.building, Room.roomnumber, Meeting.purpose,
 FROM Room
 	JOIN Meeting ON (Room.ID = Meeting.roomID)
 ORDER BY starttime, room.building, room.roomnumber;
+
 \qecho
 \qecho #3
 \qecho
+/*
+Show the capacity of each room  If there is no capacity noted – print "unknown" as the value.  
+Columns building, roomNumber, numSeats  
+Order By building, roomNumber
+*/
 SELECT Room.building, Room.roomnumber AS "roomNumber", 
 	COALESCE(Room.capacity::text, 'unknown') AS "numSeats"
 FROM Room
 ORDER BY room.building, "roomNumber";
+
 \qecho
 \qecho #4
 \qecho
+/*
+How many rooms in each building have a value for capacity?   Order by Building
+Columns Building, RoomsWithCapacity
+Order by Building
+*/
 SELECT Room.building AS "Building",
 	COUNT (*) AS "RoomsWithCapacity"
 FROM Room
 Where room.capacity is NOT NULL
 GROUP BY "Building"
 ORDER BY "Building";
+
 \qecho
 \qecho #5
 \qecho
+/*
+Find the total number of seats in all rooms in all buildings  
+Columns "Total Known Seat Count"
+*/
 SELECT SUM(Room.capacity) AS "Total Known Seat Count"
 FROM Room
 WHERE room.capacity is NOT NULL;
+
 \qecho
 \qecho #6
 \qecho
+/*
+Assume that if there is no capacity noted – the capacity is 100  Given that assumption find the total number of seats in all buildings
+Columns "Total Seat Count"
+*/
 SELECT SUM(COALESCE(Room.capacity::int, 100)) AS "Total Seat Count"
 FROM Room;
+
 \qecho
 \qecho #7
 \qecho
+/*
+Find all meetings starting between 11:00  AM and 2:00 PM inclusive 
+Columns purpose, startdate, starttime
+*/
 SELECT Meeting.purpose, Meeting.starttime::date AS startdate, 
 	starttime::time AS starttime
 FROM Meeting
 WHERE starttime::time >= '11:00:00' AND starttime::time <= '14:00:00';
+
 \qecho
 \qecho #8
 \qecho
+/*
+What meetings will be occurring after 4:00  PM? Note that a meeting that lasts for on hour, and starts at 3:30 PM will be occurring after 4:00 PM
+Colulmns purpose , starttime,  duration
+Order by meeting.id
+*/
 SELECT Meeting.purpose, Meeting.starttime::time AS starttime, 
 	meeting.duration
 FROM Meeting
 WHERE starttime::time + duration > '16:00:00'
 ORDER BY meeting.ID;
+
 \qecho
 \qecho #9
 \qecho
+/*
+List all meetings that are happening on 2018-03-28 at 2:30 PM
+Columns  purpose, starttime, duration
+Order by starttime, meeting.id
+*/
 SELECT Meeting.purpose, Meeting.starttime, Meeting.duration
 FROM Meeting
 WHERE starttime <= '2018-03-28 14:30:00'
 	AND starttime + duration >= '2018-03-28 14:30:00'
 ORDER BY meeting.starttime, meeting.id;
+
 \qecho
 \qecho #10
 \qecho
+/*
+we want to understand which meeting purposes do not have a moderator.  ( show purpose only once)  order by purpose
+Column: purpose
+Order by purpose
+*/
 SELECT DISTINCT Meeting.purpose FROM Meeting
 WHERE meeting.moderatorID is NULL
 ORDER BY meeting.purpose;
+
 \qecho
 \qecho #11
 \qecho
+/*
+We want to know which employees are in meetings on 2018-03-18 at 10:00. Show each employee only once.
+Columns : employeenum, name
+Order by employeenum
+*/
 SELECT DISTINCT Employee.employeenum, Employee.name 
 FROM Employee
 	JOIN Attendees ON (Employee.ID = Attendees.employeeID)
@@ -85,9 +151,16 @@ FROM Employee
 WHERE starttime <= '2018-03-18 10:00:00'
 	AND starttime + duration >= '2018-03-18 10:00:00'
 ORDER BY employee.employeenum; 
+
 \qecho
 \qecho #12
 \qecho
+/*
+Find all employees who are double booked at 2018-03-18 at 10:00
+Columns: employeenum,  employeeName,  numMeetings  
+( where numMeetings are the number of meetings the employees is booked for )
+Order by employeenum
+*/
 SELECT Employee.employeenum, Employee.name AS "employeeName",
 	COUNT (*) AS "numMeetings"
 FROM Employee
@@ -98,9 +171,14 @@ WHERE starttime <= '2018-03-18 10:00:00'
 GROUP BY employee.ID
 HAVING COUNT (*) > 1
 ORDER BY employee.employeenum;
+
 \qecho
 \qecho #13
 \qecho
+/*
+Which employee spends the most times attending  meetings which have a moderator?
+Columns employeenum, name, ‘totalDuration’
+*/
 SELECT Employee.employeenum, Employee.name, 
 	SUM(Meeting.duration) AS "totalDuration"
 FROM Employee
@@ -110,9 +188,15 @@ WHERE meeting.moderatorID IS NOT NULL
 GROUP BY employee.ID
 ORDER BY "totalDuration" DESC
 LIMIT 1;
+
 \qecho
 \qecho #14
 \qecho
+/*
+We want to find out the average yearly salary cost by meeting purpose ( IE how much money are all these meetings costing the company   IE what is the average salary for Lunch meetings vs Staff meetings etc) 
+Column names: purpose, ‘Average Salary’
+Order by purpose
+*/
 SELECT DISTINCT Meeting.purpose, 
 	AVG(Employee.salary) AS "Average Salary"
 FROM Employee

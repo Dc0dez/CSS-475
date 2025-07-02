@@ -1,5 +1,6 @@
 \qecho Dylan Nelson
 \qecho
+
 SELECT current_database();
 \qecho
 CREATE DATABASE "Hw08";

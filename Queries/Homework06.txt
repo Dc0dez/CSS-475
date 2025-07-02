@@ -1,3 +1,6 @@
+/*
+db03
+*/
 \qecho Dylan Nelson
 \qecho
 ALTER SEQUENCE Genre_id_seq  RESTART WITH 12;
@@ -8,6 +11,9 @@ ALTER SEQUENCE bookCat_id_seq  RESTART WITH 1350;
 BEGIN;
 
 \qecho #1
+/*
+Perform a checkout on the book 0737494331 ( 'War of the Worlds') to library card 0028613547.  Do not hard code a surrogate key value in any of your statements. Use the default value for the date in the corecord
+*/
 INSERT INTO CoRecord (BookID, LibCardID, 
 			CoDate, CIDueDate)
 VALUES (
@@ -31,6 +37,9 @@ WHERE book.barcode = '0737494331' AND book.liblocationid IS  NULL;
 
 \qecho
 \qecho #2
+/*
+Check in the book you checked out in #1. You may hardcode the loblocationid for this problem. 
+*/
 UPDATE CoRecord 
 SET CIDate = CURRENT_DATE
 WHERE BookID = (SELECT ID FROM Book WHERE BarCode = '0737494331')
@@ -51,6 +60,15 @@ WHERE  libcardid = (SELECT id from libcard WHERE barcode = '0028613547')
 
 \qecho
 \qecho #3
+/*
+Add a new genre to the database
+The new type is "550 Fans"
+Return the ID ( surrogate key) for future calls in this question ( IE you may use the returned auto-generated key in this question) 
+Associate any book with the word 'green' in the description to this genre
+Ignore case for the match  IE 'GreEnish' would match.
+You may use the surrogate primary key returned from the insert in your commands -  but you must return that key value when you do the insert.
+Use a single command to add the associations for all of the books that include the word ‘green’ in the title
+*/
 INSERT INTO Genre (name)
 VALUES ('550 Fans')
 RETURNING ID;
@@ -67,6 +85,10 @@ order by BookCatid;
 
 \qecho
 \qecho #4
+/*
+The library has decided that the SF Classic 'Dune' ( bookCat.ID = 576) promotes drug use.  They want to remove all mention of the book anywhere in the database ( bookCat, book, genre, etc) 
+You may use the Surrogate key for the book ( 576) in your commands. 
+*/
 DELETE FROM Book 
 WHERE BookCatID = 576;
 DELETE FROM BookToAuthor 
@@ -87,6 +109,20 @@ WHERE bookcatid = 576;
 
 \qecho
 \qecho #5
+/*
+We want to create a new customer and their library card
+Customer info
+firstName 'George'
+lastName 'Spelvin'
+email 'Pseudonum@gmail.com'
+address '1234 Plain Street'
+City 'Rochester'
+State 'NY'
+Library Card
+BarCode 'B123456789'
+Issue Date 1/15/2323
+You may use the Surrogate PK of the created customer when you create  the library card record ( if you return the id in the update) 
+*/
 INSERT INTO Customer (FirstName, LastName, email, address1,
 			city, StateID)
 VALUES ('George', 'Spelvin', 'pseudonum@gmail.com',
@@ -107,6 +143,12 @@ WHERE libcard.customerid = 102;
 
 \qecho
 \qecho #6
+/*
+Georgina Spelvin has lost her library card.  Deactivate the lost card and give her a new one.
+You may do a query to get the surrogate ID for Georgina Spelvin and use that ID in your subsequent commands.  You may assume that there is only one Georgina Spelvin in the system.
+Creation date for the new library card is 1/5/2023
+Barcode for new card is 'X123456789'
+*/
 SELECT * FROM Customer
 WHERE customer.firstname = 'Georgina' AND
 	customer.lastname = 'Spelvin';
@@ -132,6 +174,17 @@ WHERE customerid = 50 AND isactive;
 
 \qecho
 \qecho #7
+/*
+Add a new bookCatalog entry to the system.
+Title 'A Stich in Time'
+Description 'One Second'
+Isbn '183456789'
+Ddnum 482.123
+Genres 'Thriller' and 'Romance'
+No Author
+You may return the surrogate ID for the new entry to use in setting up Genre records
+You man NOT use the surrogate key for the Thriller and Romance genre in your code
+*/
 INSERT INTO BookCat (title, Description, ISBN, DDNum)
 VALUES ('A Stich in Time', 'One Second', '183456789', '482.123')
 RETURNING ID;
@@ -153,6 +206,12 @@ WHERE genre.name ilike 'Romance';
 
 \qecho
 \qecho #8
+/*
+For the bookCat you added in #7 – add three instances to the database of the book (  IE the library just purchased three copies of the book ).
+Book barcodes are  'C123456789', 'D123456789', 'E123456789'
+Location of books is in 'Cart'
+You may NOT use the surrogate PK of the BookCat for this problem
+*/
 INSERT INTO Book (BarCode, BookCatID, LibLocationID)
 VALUES ('C123456789', (SELECT ID FROM BookCat WHERE title ILIKE 'A Stich in Time'),
 	(SELECT ID FROM LibLocation WHERE name ILIKE 'Cart')),
@@ -169,6 +228,10 @@ WHERE bookcat.isbn = '183456789';
 
 \qecho
 \qecho #9
+/*
+A water leak has damaged all of the books in the checkin cart.  They have been moved to Repair.
+Update the database to show that all books in the checking cart have been moved to repair.  Use a single update statement.
+*/
 UPDATE Book
 SET LibLocationID = (SELECT ID FROM LibLocation WHERE name ILIKE 'Repair')
 WHERE LibLocationID = (SELECT ID FROM LibLocation WHERE name ILIKE '%checkin%cart%');
@@ -180,6 +243,11 @@ WHERE liblocationid = 3;
 
 \qecho
 \qecho #10
+/*
+The repair department has determined that the following books  are damaged beyond repair.  
+( identified by their bar codes)   0214219368, 0366461513, 0661141665   
+Delete these books from the database in a single statement 
+*/
 DELETE FROM Book
 WHERE BarCode IN ('0214219368', '0366461513', '0661141665')
 AND LibLocationID = (SELECT ID FROM LibLocation WHERE name ILIKE 'Repair');

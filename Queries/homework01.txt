@@ -1,33 +1,61 @@
+/*
+db01
+*/
 \qecho Dylan Nelson
+
 \qecho
 \qecho #1
 \qecho 
+/*
+building,  room_number  for all Rooms in the system. ( Note  room_number not roomnum)   
+Order By room_Number, building
+*/
 SELECT Room.building, Room.roomnum AS room_number 
 FROM Room
 ORDER BY room_number, room.building;
+
 \qecho
 \qecho #2
 \qecho
+/*
+building, room_number, capacity  For all rooms with capacity between 10 through 15 inclusive
+Order by capacity
+*/
 SELECT Room.building, Room.roomnum AS room_number, Room.capacity
 FROM Room
 WHERE room.capacity >=10 AND room.capacity <=15
 ORDER BY room.capacity;
+
 \qecho
 \qecho #3
 \qecho
+/*
+attendees  For the DB Issues meeting ( By attendees I mean the name of the Employee)
+Order by employee.name
+*/
 SELECT Employee.name AS attendees FROM Employee
 	JOIN Attendees ON (Employee.id = Attendees.employeeid) 
 WHERE attendees.meetingid = 108
 ORDER BY employee.name;
+
 \qecho
 \qecho #4
 \qecho
+/*
+starttime , duration, purpose  for all of Winston’s  meetings ( Where Winston  is the creator of the meeting)  
+Sort with earliest meeting date at the top of the list
+*/
 SELECT Meeting.starttime, Meeting.duration, Meeting.purpose FROM Meeting
 WHERE meeting.creator = 3
 ORDER BY meeting.starttime;
+
 \qecho
 \qecho #5
 \qecho
+/*
+starttime, duration, purpose, building, roomnum for all meetings Alice is attending.  
+Sort by Purpose and StartTime.  For purpose, sort in reverse order ( Staff at top)  For starttime order with earliest data at top.
+*/
 SELECT Meeting.starttime, Meeting.duration, Meeting.purpose, 
 	Room.building, Room.roomnum
 FROM Room
@@ -35,14 +63,24 @@ FROM Room
 	JOIN Attendees ON (Meeting.id = Attendees.meetingid)	
 WHERE attendees.employeeid = 14
 ORDER BY meeting.purpose DESC, meeting.starttime;
+
 \qecho
 \qecho #6
 \qecho
+/*
+name, phone  For all employees.  
+Sort by employee name.  ‘A’ at the top of the list. 
+*/
 SELECT Employee.name, Employee.phone FROM Employee
 ORDER BY employee.name;
+
 \qecho
 \qecho #7
 \qecho
+/*
+creator_name, purpose, building, room_number, meetingreason, starttime, duration  for all meetings owned  by Alice   ( Note custom column names )
+Sort by starttime ( most recent date at top)    
+*/
 SELECT Employee.name AS creator_name, Meeting.purpose, Room.building, 
 	Room.roomnum AS room_number, purpose as meetingreason,
 	Meeting.starttime, Meeting.duration 
@@ -51,9 +89,14 @@ FROM Room
 	JOIN Employee ON (Meeting.creator = Employee.id)
 WHERE meeting.creator = 14
 ORDER BY meeting.starttime DESC;
+
 \qecho
 \qecho #8
 \qecho
+/*
+dept_name,  emp_name, purpose , building , roomnum  for all meetings in every department that starts with ‘Software’  where the meeting is in building  ‘B’   
+Sort by dept_name, emp_name, purpose    
+*/
 SELECT Department.name AS dept_name, Employee.name AS emp_name, 
 	Meeting.purpose, Room.building, Room.roomnum
 FROM Room
@@ -63,16 +106,26 @@ FROM Room
 	JOIN Department ON (Employee.departmentid = Department.id)
 WHERE department.name LIKE 'Software%' AND room.building = 'B'
 ORDER BY dept_name, emp_name, meeting.purpose;
+
 \qecho
 \qecho #9
 \qecho
+/*
+creator_name, homephone  for every meeting creator  
+order by creator_name      
+*/
 SELECT Employee.name AS creator_name, Employee.homephone FROM Employee
 	JOIN Meeting ON (Employee.id = Meeting.creator)
 GROUP BY employee.id	
 ORDER BY creator_name;
+
 \qecho
 \qecho #10
 \qecho
+/*
+building , roomnum, starttime  for every meeting. 
+order by start time, room.id;  
+*/
 SELECT Room.building, Room.roomnum, Meeting.starttime FROM Room
 	JOIN Meeting ON (Room.id = Meeting.roomid)
 ORDER BY meeting.starttime, room.id;

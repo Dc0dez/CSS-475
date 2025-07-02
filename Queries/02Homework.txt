@@ -1,41 +1,72 @@
+/*
+db02
+*/
 \qecho Dylan Nelson
+
 \qecho
 \qecho #1
 \qecho 
+/*
+Find the number of meetings in each building – ordered by building ( A before B) 
+Column names: building  num_meetings 
+Order By Building ( A before B)
+*/
 SELECT Room.building, COUNT (*) AS num_meetings 
 FROM Room
 	JOIN Meeting ON (Room.id = Meeting.roomid)
 GROUP BY room.building
 Order BY room.building;
+
 \qecho
 \qecho #2
 \qecho
+/*
+Return the number of meetings in each room in each building  
+Column names: building,  roomNumber , nummeetings
+Order by building, roomNumber
+*/
 SELECT Room.building, Room.roomnumber, COUNT (*) AS nummeetings
 FROM Room
 	JOIN Meeting ON (Room.id = Meeting.roomid)
 GROUP BY room.id
 ORDER BY room.building, room.roomnumber;
+
 \qecho
 \qecho #3
 \qecho
+/*
+Similar to #2  Omit any room with less than 2 meetings
+*/
 SELECT Room.building, Room.roomnumber, COUNT (*) AS nummeetings
 FROM Room
 	JOIN Meeting ON (Room.id = Meeting.roomid)
 GROUP BY room.id
 HAVING count (*) >= 2
 ORDER BY room.building, room.roomnumber;
+
 \qecho
 \qecho #4
 \qecho
+/*
+Find the number of attendees in each meeting.  Order by starttime, purpose, meeting.id
+Column names  purpose, starttime,  num_attendees
+Order by starttime, purpose  earliest start time at top
+*/
 SELECT Meeting.purpose, Meeting.starttime, 
 	COUNT (*) AS num_attendees
 FROM Meeting
 	JOIN Attendees ON (Meeting.id = Attendees.meetingid)
 GROUP BY meeting.id
 ORDER BY meeting.starttime, meeting.purpose;
+
 \qecho
 \qecho #5
 \qecho
+/*
+Find the number of available seats in each meeting.  
+Column names: purpose, starttime,  num_attendees, seats_available
+Order by seats_available ( lowest at top) , starttime ( earliest at bottom) 
+*/
 SELECT Meeting.purpose, Meeting.starttime, 
 	COUNT (*) AS num_attendees, 
 	Room.capacity - COUNT(*) AS seats_available
@@ -44,17 +75,28 @@ FROM Room
 	JOIN Attendees ON (Meeting.id = Attendees.meetingid)
 GROUP BY room.id, meeting.id
 ORDER BY seats_available, starttime DESC;
+
 \qecho
 \qecho #6
 \qecho
+/*
+Find the moderator and type of meeting.  List the combination of Moderator and Type only once.      	Column names: employeenum, moderator,  purpose
+Order by employeeNum, purpose
+*/
 SELECT DISTINCT Employee.employeenum, Employee.name AS moderator, 
 	Meeting.purpose
 FROM Meeting
 	JOIN Employee ON (Meeting.moderatorid = Employee.id)
 ORDER BY employee.employeenum, meeting.purpose;
+
 \qecho
 \qecho #7
 \qecho
+/*
+We want to know how many meetings each creator has created.
+Columns names "EmployeeNum", "Employee Name", "Num Created", 
+Order by employeeNum
+*/
 SELECT Employee.employeenum AS "EmployeeNum", 
 	Employee.name AS "Employee Name", 
 	COUNT (*) AS "Num Created"
@@ -62,56 +104,97 @@ FROM Employee
 	JOIN Meeting ON (Employee.id = Meeting.creatorid)
 Group BY employee.id
 ORDER BY "EmployeeNum";
+
 \qecho
 \qecho #8
 \qecho
+/*
+Find the total number of meetings each moderator is moderating.  Order by moderatorid
+Column names Moderator Name, NumMeetings
+Order By  Moderatorid   
+*/
 SELECT Employee.name AS "Moderator Name", COUNT (*) AS "NumMeetings"
 FROM Employee
 	JOIN Meeting ON (Employee.id = Meeting.moderatorid)
 GROUP BY employee.id, meeting.moderatorid
 ORDER BY meeting.moderatorid;
+
 \qecho
 \qecho #9
 \qecho
+/*
+Find number of meetings attended by each employee
+Column names employeenum, name, nummeetings
+Order by employeenum
+*/
 SELECT Employee.employeenum, Employee.name, COUNT (*) AS nummeetings
 FROM Employee
 	JOIN Attendees ON (Employee.id = Attendees.employeeid)
 GROUP BY employee.id
 ORDER BY employee.employeenum;
+
 \qecho
 \qecho #10
 \qecho
+/*
+Find the total time each employee is in a meeting
+Column names employeenum,  name, totalduration
+Order by totalduration , employeenum with longest duration at top
+*/
 SELECT Employee.employeenum, Employee.name, SUM(Meeting.duration) AS totalduration
 FROM Employee
 	JOIN Attendees ON (Employee.id = Attendees.employeeid)
 	JOIN Meeting ON (Meeting.id = Attendees.meetingid)
 GROUP BY employee.id
 ORDER BY totalduration DESC, employee.employeenum;
+
 \qecho
 \qecho #11
 \qecho
+/*
+Create a list giving the count of phone numbers under each category ( Cell, Pager, etc)  Column names:  category, count 
+Order By category
+*/
 SELECT PhoneType.name AS category, COUNT (*)
 FROM Phone
 	JOIN PhoneType ON (Phone.phonetypeid = PhoneType.id)
 GROUP BY phonetype.name
 ORDER BY category;
+
 \qecho
 \qecho #12
 \qecho
+/*
+The ‘Lunch’ meeting scheduled for 2018-03-28 12:00:00   has been canceled.  Create a list of all attendees  to the meeting and give the cell phone number for each. Order by name
+Column name: attendee  cell_number
+Order by name
+*/
 SELECT Employee.name AS attendee, Phone.number AS cell_number FROM Employee
 	JOIN Phone ON (Employee.id = Phone.employeeid)
 	JOIN Attendees ON (Phone.employeeid = Attendees.employeeid)
 WHERE attendees.meetingid = 113 AND phone.phonetypeid = 'C';
+
 \qecho
 \qecho #13
 \qecho
+/*
+Same as prior except provide emails   order by email 
+Column name:  attendee  email
+Order by name
+*/
 SELECT Employee.name AS attendee, Employee.email FROM Employee
 	JOIN Attendees ON (Employee.id = Attendees.employeeid)
 WHERE attendees.meetingid = 113
 ORDER BY email;
+
 \qecho
 \qecho #14
 \qecho
+/*
+Provide a list of the total salaries in each department  
+Column names: departmentName  numEmployees  totalSalary
+Order By departmentName
+*/
 SELECT Department.name AS "departmentName", COUNT (*) AS "numEmployees", 
 	SUM(Employee.salary) AS "totalSalary"
 FROM Employee

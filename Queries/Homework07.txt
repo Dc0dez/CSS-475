@@ -1,21 +1,42 @@
+/*
+db03
+*/
 \qecho Dylan Nelson
+
 \qecho
 \qecho #1
+/*
+List all author’s who are not being used with any book 
+Column Names:   firstname, lastname
+Order by author.id
+*/
 SELECT A.firstname, A.lastname
 FROM Author A
 	LEFT JOIN BookToAuthor BA ON (A.ID = BA.authorID)
 WHERE BA.bookcatID IS NULL
 ORDER BY A.ID;
+
 \qecho
 \qecho #2
+/*
+List all books who do not have an author associated with them 
+Column names:  id, title  By id I mean the bookCat.id
+Order By bookCat.id
+*/
 SELECT BC.ID AS id, BC.title
 FROM Author A
 	JOIN BookToAuthor BA ON (A.ID = BA.authorID)
 	RIGHT JOIN BookCat BC ON (BA.bookcatID = BC.ID)
 WHERE A.ID IS NULL
 ORDER BY BC.ID;
+
 \qecho
 \qecho #3
+/*
+Find the Author.id for all books that have a genre.name that includes the string  'Science'  This will not use an outer join, but should be useful in #4 .  
+Column Names:  id
+Order by author. id;
+*/
 SELECT DISTINCT A.ID
 FROM Author A
 	JOIN BookToAuthor BA ON (A.ID = BA.authorID)
@@ -24,8 +45,13 @@ FROM Author A
 	JOIN Genre G ON (BCG.genreID = G.ID)
 WHERE G.name ILIKE '%Science%'
 ORDER BY A.ID;
+
 \qecho
 \qecho #4
+/*
+Find how many authors do not have a book with a genre.name that include the string 'Science'  Use an outer join for this query
+Column Names: numNonScienceAuthors
+*/
 SELECT COUNT(*) AS "numNonScienceAuthors"
 FROM Author A
 	LEFT JOIN (
@@ -38,30 +64,54 @@ FROM Author A
 		WHERE G.name ILIKE '%Science%'
 		) AS Table1 ON (A.ID = Table1.ID)
 WHERE Table1.ID IS NULL;
+
 \qecho
 \qecho #5
+/*
+Find customer.id, firstname, lastname for any customers who do not have an active library card 
+Column Names id, firstname, lastname  
+Order by customer.id
+*/
 SELECT DISTINCT C.ID, C.firstname, C.lastname
 FROM Customer C
 	LEFT JOIN LibCard LC ON (C.ID = LC.CustomerID 
 					AND LC.isactive = true)
 WHERE LC.ID IS NULL
 ORDER BY C.ID;
+
 \qecho
 \qecho #6
+/*
+Find any genres that are not being used.
+Column names name
+Order by genre.id
+*/
 SELECT G.name 
 FROM Genre G
 	LEFT JOIN BookCatToGenre BCG ON (G.ID = BCG.genreID)
 WHERE BCG.genreID IS NULL
 ORDER BY G.ID;
+
 \qecho
 \qecho #7
+/*
+Find the count of the number of times each genre is referenced by a book title.
+Column names  genrename, genretotal
+Order by genretotal
+*/
 SELECT G.name AS genrename, COUNT(BCG.genreID) AS genretotal	
 FROM Genre G
 	LEFT JOIN BookCatToGenre BCG ON (G.ID = BCG.genreID)
 GROUP BY G.ID
 ORDER BY genretotal;
+
 \qecho
 \qecho #8
+/*
+Each book is referenced by 0 or more genres.  Provide a query that shows the total number of books  that are referred to by  0 genre, 1 genre, 2 genres, etc .
+Column names  genre_count, numbooks
+Order by genre_count;
+*/
 SELECT Table1.genre_count, COUNT(*) AS numbooks
 FROM (
 	SELECT BC.ID AS book_cat, COUNT(BCG.genreID) AS genre_count
@@ -71,8 +121,14 @@ FROM (
 	) AS Table1
 GROUP BY Table1.genre_count
 ORDER BY Table1.genre_count;
+
 \qecho
 \qecho #9
+/*
+Find all phone numbers for all customers who do not have an active library card .
+Column names:  customerid, firstname.,Lastname, phonetypeid, number
+Order by customer.id, phone.number 
+*/
 SELECT DISTINCT C.ID AS customerID, C.firstname, 
 	C.lastname, P.phonetypeID, P.number
 FROM Customer C
@@ -81,8 +137,14 @@ FROM Customer C
 					AND LC.isactive = true)
 WHERE LC.ID IS NULL
 ORDER BY C.ID, P.number;
+
 \qecho
 \qecho #10
+/*
+Find all cell phones for all customers who do not have an active library card.  Print 'None' is no cell number. 
+Column names:  id, firstname.,Lastname, number
+Order by customer.id
+*/
 SELECT DISTINCT C.ID, C.firstname, 
 	C.lastname, COALESCE(P.number::text, 'None') AS number
 FROM Customer C
@@ -92,20 +154,37 @@ FROM Customer C
 					AND LC.isactive = true)
 WHERE LC.ID IS NULL
 ORDER BY C.ID;
+
 \qecho
 \qecho #11A
+/*
+Print the number of customers 	
+Column Name:  numcustomers  ( no outer join)
+*/
 SELECT COUNT(*) AS numcustomers
 FROM Customer;
+
 \qecho
 \qecho #11B
+/*
+Print the customerid for each customer that HAS checked checked out a book since 2022-02-01 ( no outer join)
+Column Name:  customerid
+Order By: customerid
+*/
 SELECT DISTINCT C.ID AS customerid
 FROM Customer C
 	JOIN LibCard LC ON (C.ID = LC.CustomerID)
         JOIN CORecord CO ON (LC.ID = CO.libcardID)
 WHERE CO.codate >= '2022-02-01'
 ORDER BY customerid;
+
 \qecho
 \qecho #11C
+/*
+Print the customerid for each customer that HAS NOT  checked checked out a book since 2022-02-01 (outer join)
+Column Name:  customerid
+Order By: customerid
+*/
 SELECT DISTINCT C.ID
 FROM Customer C
 	LEFT JOIN LibCard LC ON (C.ID = LC.CustomerID)
@@ -113,8 +192,14 @@ FROM Customer C
 GROUP BY C.ID
 HAVING MAX(CO.codate) <= '2022-02-01' OR MAX(CO.codate) IS NULL
 ORDER BY C.ID;
+
 \qecho
 \qecho #12
+/*
+What books in category 'Computer Science' have never been checked out?
+Column Names: id, title
+Order by bookcat.id
+*/
 SELECT BC.ID, BC.title
 FROM BookCat BC
 	JOIN BookCatToGenre BCG ON (BC.ID = BCG.bookcatID)
